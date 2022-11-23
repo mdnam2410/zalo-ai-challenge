@@ -11,14 +11,16 @@ from transformers import AutoConfig, AutoModelForCTC, AutoProcessor
 
 
 class Wav2Vec2Aligner:
-    def __init__(self, model_name, cuda):
+    def __init__(self, model_path, cuda):
         self.cuda = cuda
-        self.config = AutoConfig.from_pretrained(model_name)
-        self.model = AutoModelForCTC.from_pretrained(model_name)
+        self.config = AutoConfig.from_pretrained(model_path, local_files_only=True)
+        self.model = AutoModelForCTC.from_pretrained(model_path, local_files_only=True)
         self.model.eval()
         if self.cuda:
             self.model.to(device="cuda")
-        self.processor = AutoProcessor.from_pretrained(model_name)
+        self.processor = AutoProcessor.from_pretrained(
+            model_path, local_files_only=True
+        )
         self.resampler = torchaudio.transforms.Resample(44000, 16000)
         blank_id = 0
         vocab = list(self.processor.tokenizer.get_vocab().keys())
@@ -320,10 +322,10 @@ def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "--model_name",
+        "--model_path",
         type=str,
-        default="nguyenvulebinh/wav2vec2-base-vietnamese-250h",
-        help="wav2vec model name",
+        default="saved_models",
+        help="pretrained model path",
     )
     parser.add_argument(
         "--song_dir", type=str, help="directory containing wavs", required=True
@@ -341,7 +343,7 @@ def main():
 
     args = parser.parse_args()
 
-    aligner = Wav2Vec2Aligner(args.model_name, args.cuda)
+    aligner = Wav2Vec2Aligner(args.model_path, args.cuda)
     aligner.align_data(args.song_dir, args.lyric_dir, args.output_dir)
 
 
