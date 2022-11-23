@@ -1,5 +1,5 @@
-SUBMISSION_DIR="/result"
-DATA_DIR="/data"
+OUTPUT_DIR="./result"
+DATA_DIR="./data"
 
 echo "Loading data from $DATA_DIR"
 
@@ -9,6 +9,8 @@ if [ ! -d $SUBMISSION_DIR ]; then
     mkdir $SUBMISSION_DIR
 fi
 
-echo "Saving results to $SUBMISSION_DIR/submission.zip"
-touch "$SUBMISSION_DIR/submission.zip"
+echo "Current directory: $(pwd)"
+
+echo "Running prediction..."
+python3 code/predict.py --song_dir $DATA_DIR/songs --lyric_dir $DATA_DIR/lyrics --output_dir $OUTPUT_DIR
 
