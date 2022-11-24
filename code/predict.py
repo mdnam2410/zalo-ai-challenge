@@ -44,13 +44,14 @@ class Wav2Vec2Aligner:
             print(item["wav_path"], "not found in wavs directory")
 
         speech_array = self.speech_file_to_array_fn(item["wav_path"])
+        speech_array = torch.from_numpy(speech_array).float()
+        # convert an audio signal to mono by averaging samples across channels.
+        if speech_array.shape[0] > 1:
+            speech_array = torch.mean(speech_array, dim=0)
+
         inputs = self.processor(
             speech_array, sampling_rate=16_000, return_tensors="pt", padding=True
         )
-
-        # convert an audio signal to mono by averaging samples across channels.
-        if inputs.input_values.shape[1] > 1:
-            inputs.input_values = torch.mean(inputs.input_values, dim=1)
 
         if self.cuda:
             inputs = inputs.to(device="cuda")
@@ -328,7 +329,10 @@ def main():
         help="pretrained model path",
     )
     parser.add_argument(
-        "--song_dir", type=str, help="directory containing wavs", required=True
+        "--song_dir",
+        type=str,
+        help="directory containing wavs",
+        default="data/public_test/songs",
     )
     parser.add_argument(
         "--lyric_dir", type=str, help="directory containing text", required=True
