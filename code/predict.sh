@@ -17,8 +17,11 @@ if [ ! -d $OUTPUT_DIR ]; then
     mkdir $OUTPUT_DIR
 fi
 
+echo "Change directory into $CODE_DIR"
+cd $CODE_DIR
+
 echo "Run prediction..."
-python3 $CODE_DIR/predict.py --song_dir $DATA_DIR/songs --lyric_dir $DATA_DIR/lyrics --output_dir $OUTPUT_DIR
+python3 predict.py --song_dir $DATA_DIR/songs --lyric_dir $DATA_DIR/lyrics --output_dir $OUTPUT_DIR
 
 echo "Changing directory to $OUTPUT_DIR"
 cd $OUTPUT_DIR
