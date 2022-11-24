@@ -23,7 +23,7 @@ cd $CODE_DIR
 echo "Run prediction..."
 python3 predict.py --song_dir $DATA_DIR/songs --lyric_dir $DATA_DIR/lyrics --output_dir $OUTPUT_DIR
 
-echo "Changing directory to $OUTPUT_DIR"
+echo "Change directory to $OUTPUT_DIR"
 cd $OUTPUT_DIR
 
 echo "Zipping..."
