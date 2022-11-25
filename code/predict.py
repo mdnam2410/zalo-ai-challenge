@@ -39,7 +39,7 @@ class Wav2Vec2Aligner:
 
     def align_single_sample(self, item):
         blank_id = self.blank_id
-        transcript = "|".join(item["sent"].split(" "))
+        transcript = "|".join(item["sent"])
         if not os.path.isfile(item["wav_path"]):
             print(item["wav_path"], "not found in wavs directory")
 
@@ -160,7 +160,9 @@ class Wav2Vec2Aligner:
             score: float
 
             def __repr__(self):
-                return f"{self.label}\t{self.score:4.2f}\t{self.start*20:5d}\t{self.end*20:5d}"
+                return (
+                    f"{self.label}\t{self.score:4.2f}\t{self.start:5d}\t{self.end:5d}"
+                )
 
             def __dict__(self):
                 return {
@@ -246,31 +248,24 @@ class Wav2Vec2Aligner:
             def length(self):
                 return self.end - self.start
 
-        def segment_sentence(segments):
-            # segment words into sentences, sentence starts with capital letter
+        def merge_sentence(segments, num_words_per_sentence):
+            # merge words into sentences
             sentences = []
-            i1, i2 = 0, 0
-            while i1 < len(segments):
-                if i2 >= len(segments) or segments[i2].label[0].isupper():
-                    if i1 != i2:
-                        segs = segments[i1:i2]
-                        sentence = Sentence(
-                            segments[i1].start, segments[i2 - 1].end, segs
-                        )
-                        sentences.append(sentence)
-                    i1 = i2
-                    i2 = i1 + 1
-                else:
-                    i2 += 1
+            start = 0
+            end = 0
+            for num_words in num_words_per_sentence:
+                end += num_words
+                start_time = segments[start].start
+                end_time = segments[end - 1].end
+                sentences.append(Sentence(start_time, end_time, segments[start:end]))
+                start = end
             return sentences
 
-        split_sentences = segment_sentence(word_segments)
+        num_words = item["num_words"]
+        sentences = merge_sentence(word_segments, num_words)
 
         with open(item["out_path"], "w", encoding="utf8") as file:
-            json.dump([s.__dict__() for s in split_sentences], file, ensure_ascii=False)
-        # with open(item["out_path"], "w") as out_align:
-        #     for seg in word_segments:
-        #         out_align.write(str(seg) + "\n")
+            json.dump([s.__dict__() for s in sentences], file, ensure_ascii=False)
 
     def align_data(self, song_dir, lyric_dir, output_dir):
 
@@ -283,13 +278,25 @@ class Wav2Vec2Aligner:
         for song_file in song_files:
             # if no lyrics, skip
             filename = song_file.split(".")[0]
-            lyric_file = os.path.join(lyric_dir, filename + ".txt")
+            lyric_file = os.path.join(lyric_dir, filename + ".json")
             if not os.path.exists(lyric_file):
                 continue
-            line = open(lyric_file, encoding="utf8").readline().strip()
+
+            with open(lyric_file, "r") as f:
+                label = json.load(f)
+
+            lyric = []
+            num_words_per_sentence = []
+            for sentence in label:
+                num_words = 0
+                for word in sentence["l"]:
+                    lyric.append(word["d"])
+                    num_words += 1
+                num_words_per_sentence.append(num_words)
             items.append(
                 {
-                    "sent": line,
+                    "sent": lyric,
+                    "num_words": num_words_per_sentence,
                     "wav_path": os.path.join(song_dir, song_file),
                     "out_path": os.path.join(output_dir, filename + ".json"),
                 }
@@ -328,16 +335,22 @@ def main():
         help="pretrained model path",
     )
     parser.add_argument(
-        "--song_dir", type=str, help="directory containing wavs", required=True
+        "--song_dir",
+        type=str,
+        help="directory containing wavs",
+        default="/Users/leminhhin/Downloads/public_test/vocals",
     )
     parser.add_argument(
-        "--lyric_dir", type=str, help="directory containing text", required=True
+        "--lyric_dir",
+        type=str,
+        help="directory containing text",
+        default="data/public_test/labels",
     )
     parser.add_argument(
         "--output_dir",
         type=str,
         help="output directory containing the alignment files",
-        required=True,
+        default="submission/run_3",
     )
     parser.add_argument("--cuda", action="store_true")
 
