@@ -2,3 +2,5 @@ torch==1.12.1
 torchaudio==0.12.1
 tqdm==4.64.0
 transformers==4.24.0
+ffmpeg==1.4
+spleeter==2.3.2
