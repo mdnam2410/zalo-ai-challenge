@@ -9,6 +9,9 @@ import torchaudio
 from tqdm import tqdm
 from transformers import AutoConfig, AutoModelForCTC, AutoProcessor
 
+import spleeter
+from spleeter.separator import Separator
+from spleeter.audio.adapter import AudioAdapter
 
 class Wav2Vec2Aligner:
     def __init__(self, model_path, cuda):
@@ -16,6 +19,11 @@ class Wav2Vec2Aligner:
         self.config = AutoConfig.from_pretrained(model_path, local_files_only=True)
         self.model = AutoModelForCTC.from_pretrained(model_path, local_files_only=True)
         self.model.eval()
+        
+        self.separator = Separator('spleeter:2stems')
+        self.audio_loader = AudioAdapter.default()
+        self.sample_rate = 44100
+
         if self.cuda:
             self.model.to(device="cuda")
         self.processor = AutoProcessor.from_pretrained(
@@ -32,8 +40,9 @@ class Wav2Vec2Aligner:
 
     def speech_file_to_array_fn(self, wav_path):
         # TODO: resample from diff freq
-        speech_array, sampling_rate = torchaudio.load(wav_path)
-        self.resampler.orig_freq = sampling_rate
+        waveform, _ = self.audio_loader.load(wav_path, sample_rate=self.sample_rate)
+        prediction = self.separator.separate(waveform)
+        speech_array = torch.from_numpy(prediction['vocals'].T)
         speech = self.resampler(speech_array).squeeze().numpy()
         return speech
 
