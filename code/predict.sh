@@ -2,7 +2,7 @@ OUTPUT_DIR="/result"
 DATA_DIR="/data"
 CODE_DIR="/code"
 
-if [[ $# -eq 3  && $1 == "--local" ]] ; then
+if [[ $# -eq 4  && $1 == "--local" ]] ; then
     DATA_DIR=$2
     OUTPUT_DIR=$3
     CODE_DIR=$4
