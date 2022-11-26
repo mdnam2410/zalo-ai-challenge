@@ -37,7 +37,8 @@ class Wav2Vec2Aligner:
 
     def speech_file_to_array_fn(self, wav_path):
         # TODO: resample from diff freq
-        waveform, _ = self.audio_loader.load(wav_path)
+        waveform, sampling_rate = self.audio_loader.load(wav_path)
+        self.resampler.orig_freq = sampling_rate
         prediction = self.separator.separate(waveform)
         speech_array = torch.from_numpy(prediction['vocals'].T)
         speech = self.resampler(speech_array).squeeze().numpy()
