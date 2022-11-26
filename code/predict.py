@@ -22,7 +22,6 @@ class Wav2Vec2Aligner:
         
         self.separator = Separator('spleeter:2stems')
         self.audio_loader = AudioAdapter.default()
-        self.sample_rate = 44100
 
         if self.cuda:
             self.model.to(device="cuda")
@@ -38,7 +37,7 @@ class Wav2Vec2Aligner:
 
     def speech_file_to_array_fn(self, wav_path):
         # TODO: resample from diff freq
-        waveform, _ = self.audio_loader.load(wav_path, sample_rate=self.sample_rate)
+        waveform, _ = self.audio_loader.load(wav_path)
         prediction = self.separator.separate(waveform)
         speech_array = torch.from_numpy(prediction['vocals'].T)
         speech = self.resampler(speech_array).squeeze().numpy()
