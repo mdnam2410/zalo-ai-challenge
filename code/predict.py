@@ -13,14 +13,12 @@ from transformers import AutoConfig, AutoModelForCTC, AutoProcessor
 class Wav2Vec2Aligner:
     def __init__(self, model_path, cuda):
         self.cuda = cuda
-        self.config = AutoConfig.from_pretrained(model_path, local_files_only=True)
-        self.model = AutoModelForCTC.from_pretrained(model_path, local_files_only=True)
+        self.config = AutoConfig.from_pretrained(model_path)
+        self.model = AutoModelForCTC.from_pretrained(model_path)
         self.model.eval()
         if self.cuda:
             self.model.to(device="cuda")
-        self.processor = AutoProcessor.from_pretrained(
-            model_path, local_files_only=True
-        )
+        self.processor = AutoProcessor.from_pretrained(model_path)
         self.resampler = torchaudio.transforms.Resample(44000, 16000)
         blank_id = 0
         vocab = list(self.processor.tokenizer.get_vocab().keys())
@@ -332,7 +330,7 @@ def main():
     parser.add_argument(
         "--model_path",
         type=str,
-        default="saved_models",
+        default="not-tanh/wav2vec2-large-xlsr-53-vietnamese",
         help="pretrained model path",
     )
     parser.add_argument(
@@ -345,13 +343,13 @@ def main():
         "--lyric_dir",
         type=str,
         help="directory containing text",
-        default="data/public_test/labels",
+        default="data/public_test/lyrics",
     )
     parser.add_argument(
         "--output_dir",
         type=str,
         help="output directory containing the alignment files",
-        default="submission/run_3",
+        default="submission/run_5",
     )
     parser.add_argument("--cuda", action="store_true")
 
