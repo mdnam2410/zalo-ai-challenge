@@ -337,7 +337,7 @@ def main():
         "--song_dir",
         type=str,
         help="directory containing wavs",
-        default="/Users/leminhhin/Downloads/public_test/vocals",
+        default="data/public_test/songs",
     )
     parser.add_argument(
         "--lyric_dir",
