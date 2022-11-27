@@ -290,7 +290,7 @@ class Wav2Vec2Aligner:
             if not os.path.exists(lyric_file):
                 continue
 
-            with open(lyric_file, "r") as f:
+            with open(lyric_file, "r", encoding='utf8') as f:
                 label = json.load(f)
 
             lyric = []
