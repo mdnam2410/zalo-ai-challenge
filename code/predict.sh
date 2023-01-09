@@ -20,6 +20,9 @@ fi
 echo "Change directory into $CODE_DIR"
 cd $CODE_DIR
 
+echo "Activate virtual environment"
+source bin/activate
+
 echo "Run prediction..."
 python3 predict.py --song_dir $DATA_DIR/songs --lyric_dir $DATA_DIR/lyrics --output_dir $OUTPUT_DIR
 
